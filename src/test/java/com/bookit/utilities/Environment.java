@@ -23,7 +23,7 @@ public class Environment {
         Properties properties = null;
         String environment = "";
 
-        if(System.getProperty("environment")==null){
+        if(System.getProperty("environment")!=null){
             environment= System.getProperty("environment");
         }else {
             environment=ConfigurationReader.getProperty("environment");

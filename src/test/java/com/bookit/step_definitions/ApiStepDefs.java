@@ -186,5 +186,62 @@ public class ApiStepDefs {
 
     }
 
+    /**
+     * TEAM FEATURE
+     */
+
+    Map<String,String> expectedMap;
+    @When("Users sends POST request to {string} with following info:")
+    public void users_sends_post_request_to_with_following_info(String endpoint, Map<String,String> dataMap) {
+
+        response=given().log().all()
+                .queryParams(dataMap)
+                .header("Authorization",token)
+                .when().post(Environment.BASE_URL+endpoint);
+
+        System.out.println(Environment.BASE_URL+endpoint);
+
+        expectedMap=dataMap;
+
+    }
+    int newTeamID;
+    @Then("Database should persist same team info")
+    public void database_should_persist_same_team_info() {
+        newTeamID = response.path("entryiId");
+        System.out.println("------> NEW TEAM is CREATED "+newTeamID);
+
+        String query="select location,batch_number,name " +
+            "from team t inner join campus c on t.campus_id=c.id " +
+            "where t.id="+newTeamID;
+
+        DB_Util.runQuery(query);
+
+        Map<String, String> actualMap = DB_Util.getRowMap(1);
+        System.out.println("actualMap = " + actualMap);
+
+        // Assertions
+        Assert.assertEquals(expectedMap.get("campus-location"),actualMap.get("location"));
+        Assert.assertEquals(expectedMap.get("batch-number"),actualMap.get("batch_number"));
+        Assert.assertEquals(expectedMap.get("team-name"),actualMap.get("name"));
+
+
+    }
+    @Then("User deletes previously created team")
+    public void user_deletes_previously_created_team() {
+
+        given().accept(ContentType.JSON)
+                .header("Authorization",token)
+                .pathParam("id",newTeamID)
+                .when().delete(Environment.BASE_URL+"/api/teams/{id}")
+                .then().statusCode(200);
+
+        System.out.println("------> NEW TEAM is DELETED "+newTeamID);
+
+
+
+
+    }
+
+
 
 }
